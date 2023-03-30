@@ -36,8 +36,18 @@ app.get("/movies/", async (request, response) => {
     FROM 
      movie;
     `;
+  const convertToCamel = (dbObject) => {
+    return {
+      movieName: dbObject.movie_name,
+    };
+  };
+
   const allMovieNamesArray = await db.all(getMovieNamesQuery);
-  response.send(allMovieNamesArray);
+
+  const result = allMovieNamesArray.map((eachMovie) =>
+    convertToCamel(eachMovie)
+  );
+  response.send(result);
 });
 
 //Add a movie API
@@ -80,6 +90,7 @@ app.put("/movies/:movieId", async (request, response) => {
     movie_name = '${movieName}',
     lead_actor = '${leadActor}'
     WHERE movie_id = '${movieId}';
+    
   `;
   await db.run(updateMovieQuery);
   response.send("Movie Details Updated");
@@ -100,16 +111,47 @@ app.get("/directors/", async (request, response) => {
   const getAllDirectorsQuery = `
     SELECT * FROM director;
     `;
+  const convertToCamel = (dbObject) => {
+    return {
+      directorId: dbObject.director_id,
+      directorName: dbObject.director_name,
+    };
+  };
+
   const allDirectorsArray = await db.all(getAllDirectorsQuery);
-  response.send(allDirectorsArray);
+  response.send(
+    allDirectorsArray.map((eachDirector) => convertToCamel(eachDirector))
+  );
 });
 
 //Get all Movies of a DireDirector API
 app.get("directors/:directorId/movies/", async (request, response) => {
   const { directorId } = request.params;
   const moviesOfADirectorQuery = `
-    SELECT * FROM movie WHERE director_id = ${directorId};
+    SELECT movie_name 
+    FROM movie 
+    WHERE 
+      movie.director_id = '${directorId}';
     `;
   const allMoviesOfADirector = await db.all(moviesOfADirectorQuery);
-  response.send(allMoviesOfADirector);
+  const convertToCamel = (dbObject) => {
+    return {
+      movieName: dbObject.movie_name,
+    };
+  };
+  response.send(
+    allMoviesOfADirector.map((eachMovie) => convertToCamel(eachMovie))
+  );
+});
+
+////////
+app.get("/movies//", async (request, response) => {
+  const getMovieNamesQuery = `
+    SELECT
+     *
+    FROM 
+     movie;
+    `;
+  const allMovieNamesArray = await db.all(getMovieNamesQuery);
+  response.send(allMovieNamesArray);
 });
